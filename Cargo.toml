@@ -14,4 +14,4 @@ rand = "*"
 [[bin]]
 
 name = "wave_function_collapse"
-path = "main.rs"
+path = "src/main.rs"
