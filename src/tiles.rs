@@ -1,23 +1,60 @@
+#[allow(dead_code)]
 pub mod tiles{
-    use std::{fmt, error::Error};
+    use std::{fmt::{self}, error::Error};
     use rand::Rng;
 
-    #[allow(dead_code)]
+    pub fn gen_image(x:usize, y:usize, tiles: &Vec<Tile>) -> TileCanvas{
+        
+        println!("Creating a canvas");
+        let mut image = TileCanvas::new(x, y);
+        println!("Filling the Canvas");
+        let mut counter = 0;
+        loop {
+            match image.fill_position(&tiles) {
+                Ok(_) => {counter +=1; println!("Filled {}. positon", counter);},
+                Err(n) => {println!("Error: {}", n);break;}
+            }
+        }
+        println!("Canvas filled");
+        return image;
+    }
+
+
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct TileCanvas{
-        vec: Vec<Vec<Tile>>
+        pub vec: Vec<Vec<Tile>>
     }
-    #[allow(dead_code)]
+
     impl TileCanvas{
+
+        pub fn to_array(&self) -> Vec<Vec<bool>>{
+            let vec = self.vec.to_owned();
+            let mut result = vec![vec![false; vec[0].len()*3] ;vec.len() *3];
+
+            for i in 0..vec.len(){
+                for j in 0..vec[0].len(){
+                    let tile = vec[i][j];
+                    for x in 0..3{
+                        for y in 0..3{
+                            result[i * 3 + y][j * 3 + x] = tile.map[y][x];
+                        }
+                    }
+                }
+
+            }
+
+            result
+        }   
+
         pub fn new(x:usize, y:usize) ->TileCanvas{
             TileCanvas {vec: vec![vec![Tile{ready:false, map:[[false ; 3]; 3]}; x]; y]}
         }
         pub fn fits_at_position(&self, tile:&Tile, pos:&Point2) -> bool{
             let mut fits = self.vec[pos.y][pos.x].ready == false;
-            fits = fits && tile.fits_to_left(&self.vec[pos.y][pos.x-1]);
-            fits = fits && tile.fits_to_right(&self.vec[pos.y][pos.x+1]);
-            fits = fits && tile.fits_to_bottom(&self.vec[pos.y -1][pos.x]);
-            fits = fits && tile.fits_to_top(&self.vec[pos.y+1][pos.x]);
+            fits = fits && (pos.x == 0 || tile.fits_to_left(&self.vec[pos.y][pos.x-1]));
+            fits = fits && (pos.x == self.vec[0].len() -1 || tile.fits_to_right(&self.vec[pos.y][pos.x+1]));
+            fits = fits && (pos.y == 0 ||tile.fits_to_bottom(&self.vec[pos.y -1][pos.x]));
+            fits = fits && (pos.y == self.vec.len() - 1 ||tile.fits_to_top(&self.vec[pos.y+1][pos.x]));
 
             fits 
         }
@@ -35,7 +72,7 @@ pub mod tiles{
             return result
         }
 
-        pub fn fill_position(&mut self, tiles:Vec<Tile>) -> Result<(), InsertionError>{
+        pub fn fill_position(&mut self, tiles:&Vec<Tile>) -> Result<(), InsertionError>{
 
             let mut min_fits = tiles.len();
             let mut where_min = Point2{x:0, y:0};
@@ -51,7 +88,8 @@ pub mod tiles{
                     let pos = Point2{x:x, y:y};
 
                     let fits_index = self.which_fit_at_position(&tiles, &pos);
-                    if fits_index.len()  < min_fits{
+                    if fits_index.len() > 0 && fits_index.len()  <= min_fits{
+                        
                         where_min = pos;
                         min_fits = fits_index.len();
                         what_min = fits_index;
@@ -72,6 +110,26 @@ pub mod tiles{
         }
     }
 
+    impl std::fmt::Display for TileCanvas{
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            let vec = (*self).to_array();
+            write!(f, "Image: \n")?;
+
+            for i in vec{
+                for j in i{
+                    if j {
+                        write!(f, "@")?;
+                    }
+                    else{
+                        write!(f, ".")?;
+                    }
+                }
+                write!(f, "\n")?;
+            }
+
+            Ok(())
+        }
+    }
 
     #[derive(Debug, PartialEq, Eq, Clone, Copy)]
     pub struct Point2{
@@ -162,7 +220,7 @@ pub mod tiles{
     fn gen_unique_tile(tiles:&Vec<Tile>) -> Tile{
         loop{
             
-            let mut found = true;
+            let mut found = false;
             let candidate = gen_tile();
             for i in tiles{
                 if i == candidate{
@@ -186,7 +244,7 @@ pub mod tiles{
     }
 
 
-    #[derive(Debug)]
+    #[derive(Debug, PartialEq, Eq, Clone)]
     pub struct InsertionError {
         details: String
     }
