@@ -1,0 +1,17 @@
+[package]
+name = "wave_function_collapse"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bmp = "*"
+rand = "*"
+
+
+
+[[bin]]
+
+name = "wave_function_collapse"
+path = "main.rs"
