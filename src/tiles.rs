@@ -1,6 +1,7 @@
 #[allow(dead_code)]
 pub mod tiles{
     use std::{fmt::{self}, error::Error};
+    use image::{Rgb, ImageBuffer};
     use rand::Rng;
 
     pub fn gen_image(x:usize, y:usize, tiles: &Vec<Tile>) -> TileCanvas{
@@ -26,6 +27,22 @@ pub mod tiles{
     }
 
     impl TileCanvas{
+        
+        pub fn to_image(&self, fg_color: Rgb<u8>, bg_color:Rgb<u8>) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
+            let array = self.to_array();
+            let mut img = ImageBuffer::new(array[0].len() as u32, array.len() as u32);
+        
+            for (x, y, pixel) in img.enumerate_pixels_mut() {
+                let color = if array[y as usize][x as usize] {
+                    fg_color
+                } else {
+                    bg_color
+                };
+                *pixel = color;
+            }
+        
+            img
+        }
 
         pub fn to_array(&self) -> Vec<Vec<bool>>{
             let vec = self.vec.to_owned();
@@ -51,10 +68,10 @@ pub mod tiles{
         }
         pub fn fits_at_position(&self, tile:&Tile, pos:&Point2) -> bool{
             let mut fits = self.vec[pos.y][pos.x].ready == false;
-            fits = fits && (pos.x == 0 || tile.fits_to_left(&self.vec[pos.y][pos.x-1]));
-            fits = fits && (pos.x == self.vec[0].len() -1 || tile.fits_to_right(&self.vec[pos.y][pos.x+1]));
-            fits = fits && (pos.y == 0 ||tile.fits_to_bottom(&self.vec[pos.y -1][pos.x]));
-            fits = fits && (pos.y == self.vec.len() - 1 ||tile.fits_to_top(&self.vec[pos.y+1][pos.x]));
+            fits = fits && (pos.x == 0 || tile.fits_to_right(&self.vec[pos.y][pos.x-1]));
+            fits = fits && (pos.x == self.vec[0].len() -1 || tile.fits_to_left(&self.vec[pos.y][pos.x+1]));
+            fits = fits && (pos.y == 0 ||tile.fits_to_top(&self.vec[pos.y -1][pos.x]));
+            fits = fits && (pos.y == self.vec.len() - 1 ||tile.fits_to_bottom(&self.vec[pos.y+1][pos.x]));
 
             fits 
         }
