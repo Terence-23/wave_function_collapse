@@ -1,0 +1,1 @@
+My implementation of the [wave function collapse](https://robertheaton.com/2018/12/17/wavefunction-collapse-algorithm/ "wave function collapse") algorithm. It uses randomly generated tiles as input and assumes that on each border between tiles neghbouring blocks have to have the same state. Currently works only for 3x3 tiles. 
