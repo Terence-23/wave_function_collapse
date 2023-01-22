@@ -123,7 +123,6 @@ fn main(){
     let tiles = gen_tiles(9);
     println!("Tiles ready.");
     let img = gen_image(5, 5, &tiles);
-    println!("{}", img);
     let bmp = img.to_image(fg_color.to_rgb(), bg_color.to_rgb());
     bmp.save(output_file).unwrap()
 }
